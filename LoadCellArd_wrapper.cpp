@@ -23,6 +23,33 @@ long sample=0;
 float val=0;
 long count=0;
 
+
+unsigned long readCount(void)
+{
+  unsigned long Count;
+  unsigned char i;
+  pinMode(DT, OUTPUT);
+  digitalWrite(DT,HIGH);
+  digitalWrite(SCK,LOW);
+  Count=0;
+  pinMode(DT, INPUT);
+  while(digitalRead(DT));
+  for (i=0;i<24;i++)
+  {
+    digitalWrite(SCK,HIGH);
+    Count=Count<<1;
+    digitalWrite(SCK,LOW);
+    if(digitalRead(DT)) 
+    Count++;
+  }
+  digitalWrite(SCK,HIGH);
+  Count=Count^0x800000;
+  digitalWrite(SCK,LOW);
+  return(Count);
+}
+
+
+
 #endif
 /* %%%-SFUNWIZ_wrapper_includes_Changes_END --- EDIT HERE TO _BEGIN */
 #define y_width 1
@@ -39,7 +66,7 @@ long count=0;
  * Output function
  *
  */
-extern "C"  LoadCellArd_Outputs_wrapper(real_T *y0,
+extern "C" void LoadCellArd_Outputs_wrapper(real_T *y0,
 			const real_T *xD)
 {
 /* %%%-SFUNWIZ_wrapper_Outputs_Changes_BEGIN --- EDIT HERE TO _END */
@@ -53,27 +80,8 @@ extern "C"  LoadCellArd_Outputs_wrapper(real_T *y0,
 if(xD[0] == 1)
 {
     #ifndef MATLAB_MEX_FILE
-    unsigned long Count;
-  
-  pinMode(DT, OUTPUT);
-  digitalWrite(DT,HIGH);
-  digitalWrite(SCK,LOW);
-  Count=0;
-  pinMode(DT, INPUT);
-  while(digitalRead(DT));
-  for (int i=0;i<24;i++)
-  {
-    digitalWrite(SCK,HIGH);
-    Count=Count<<1;
-    digitalWrite(SCK,LOW);
-    if(digitalRead(DT)) 
-    Count++;
-  }
-  digitalWrite(SCK,HIGH);
-  Count=Count^0x800000;
-  digitalWrite(SCK,LOW);
-  count = Count;
-  int w=(((count-sample)/val)-2*((count-sample)/val));
+    count= readCount();
+    y0[0] = (count*0.0047-39468-900);
     #endif
 }
 /* %%%-SFUNWIZ_wrapper_Outputs_Changes_END --- EDIT HERE TO _BEGIN */
@@ -83,103 +91,15 @@ if(xD[0] == 1)
  * Updates function
  *
  */
-extern "C"  LoadCellArd_Update_wrapper(real_T *y0,
+extern "C" void LoadCellArd_Update_wrapper(real_T *y0,
 			real_T *xD)
 {
 /* %%%-SFUNWIZ_wrapper_Update_Changes_BEGIN --- EDIT HERE TO _END */
 if(xD[0] != 1)
 {
     #ifndef MATLAB_MEX_FILE
-     pinMode(SCK, OUTPUT);
-  pinMode(sw, INPUT_PULLUP);
-  
-  delay(1000);
-
- //////////$$$$
- for(int i=0;i<100;i++)
-  {
-    unsigned long Count;
-  
-  pinMode(DT, OUTPUT);
-  digitalWrite(DT,HIGH);
-  digitalWrite(SCK,LOW);
-  Count=0;
-  pinMode(DT, INPUT);
-  while(digitalRead(DT));
-  for (int i=0;i<24;i++)
-  {
-    digitalWrite(SCK,HIGH);
-    Count=Count<<1;
-    digitalWrite(SCK,LOW);
-    if(digitalRead(DT)) 
-    Count++;
-  }
-  digitalWrite(SCK,HIGH);
-  Count=Count^0x800000;
-  digitalWrite(SCK,LOW);
-  count = Count;
-    sample+=count;
-    
-  }
-  ///////
-  sample/=100;
-  
-  
-  count=0;
-  while(count<1000)
-  {
-    unsigned long Count;
-  
-  pinMode(DT, OUTPUT);
-  digitalWrite(DT,HIGH);
-  digitalWrite(SCK,LOW);
-  Count=0;
-  pinMode(DT, INPUT);
-  while(digitalRead(DT));
-  for (int i=0;i<24;i++)
-  {
-    digitalWrite(SCK,HIGH);
-    Count=Count<<1;
-    digitalWrite(SCK,LOW);
-    if(digitalRead(DT)) 
-    Count++;
-  }
-  digitalWrite(SCK,HIGH);
-  Count=Count^0x800000;
-  digitalWrite(SCK,LOW);
-  count = Count;
-    count=sample-count;
-    
-  }
-  ////////
-  delay(2000);
-  for(int i=0;i<100;i++)
-  {
-    unsigned long Count;
- 
-  pinMode(DT, OUTPUT);
-  digitalWrite(DT,HIGH);
-  digitalWrite(SCK,LOW);
-  Count=0;
-  pinMode(DT, INPUT);
-  while(digitalRead(DT));
-  for (int i=0;i<24;i++)
-  {
-    digitalWrite(SCK,HIGH);
-    Count=Count<<1;
-    digitalWrite(SCK,LOW);
-    if(digitalRead(DT)) 
-    Count++;
-  }
-  digitalWrite(SCK,HIGH);
-  Count=Count^0x800000;
-  digitalWrite(SCK,LOW);
-  count = Count;
-    val+=sample-count;
-    
-  }
-  val=val/100.0;
-  val=val/100.0; 
+    pinMode(SCK, OUTPUT);
+    pinMode(sw, INPUT_PULLUP);
     #endif
     xD[0] = 1;
 }
